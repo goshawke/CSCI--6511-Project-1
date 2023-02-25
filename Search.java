@@ -46,6 +46,7 @@ public class Search {
 
             // Check if the current state is the goal state
             if (currentState.isGoalState()) {
+            	System.out.println("Goal State: " + currentState.toString());
                 return currentState.getPath();
             }
 
@@ -65,15 +66,13 @@ public class Search {
            
             	// Check if the next state is in the closed set
             	 if (closedSet.contains(nextState)) {
-            		 System.out.println("Skip State");
+            		 // System.out.println("Skip State");
                      continue;
                  }
             	// if True it means that we already visited this state
 
                 
-             	// TEST - PASS
-                System.out.println("Next State: " + nextState);
-                // TEST - PASS
+             	
                 
                 
 
@@ -94,11 +93,13 @@ public class Search {
                     
                     // Remove the existing state from the open set
                     openSet.remove(existingState);
-                    System.out.println("Removing Existing State");
+                    // System.out.println("Removing Existing State");
                 }
                 
                 
-                
+                // TEST - PASS
+                // System.out.println("Next State: " + nextState);
+                // TEST - PASS
                 
        
 
@@ -114,51 +115,60 @@ public class Search {
         // No solution found
         return null;
     }
-    
+
     private int calculateHeuristic(int[] status) 
     {
-    	// WORKS BUT SLOW 
+    	int minDiff = Integer.MAX_VALUE;
 
-    	int minMaxDiff = Integer.MAX_VALUE;
-    	int maxDiff = 0;
-        for (int i = 0; i < status.length; i++) {
-            
-            for (int j = 0; j < status.length; j++) {
-                if (i == j) continue;
-                int diff = Math.abs(status[i] - goal);
-                if (diff > maxDiff) {
-                    maxDiff = diff;
-                }
-            }
-            if (maxDiff < minMaxDiff) {
-                minMaxDiff = maxDiff;
-            }
-        }
-        return maxDiff;
-        
-        
-//        // WORKS BUT SLOW
-//        int maxDiff = 0;
-//        for (int i = 0; i < status.length; i++) {
-//            int diff = Math.abs(status[i] - goal);
-//            if (diff > maxDiff) {
-//                maxDiff = diff;
-//            }
-//        }
-//        return maxDiff;
-        
-        
-        
-//        EVEN SLOWER
-//        int sumDistances = 0;
-//        for (int i = 0; i < status.length; i++) {
-//            sumDistances += Math.abs(status[i] - goal);
-//        }
-//        return sumDistances;
+    	// Find the jug closest to the goal volume
+    	for (int i = 1; i < status.length; i++) {
+    		
+    		int diff = Math.abs(status[i] + status[0] - (goal));
+    		if (diff < minDiff) {
+    			minDiff = diff;
+    		}
 
-    	
+    	}
+
+    	// Check if pouring water from one jug to another can get closer to the goal volume
+    	for (int i = 1; i < status.length; i++) {
+    		for (int j = 0; j < status.length; j++) {
+    			if (i == j) {
+    				continue;
+    			}
+
+    			int maxTransfer = 0;
+    			if(j!=0)
+    			{
+    				// Calculate the maximum amount of water that can be transferred from jug i to jug j
+    				maxTransfer = Math.min(status[i], sizes[j] - status[j]);
+    				if(j==0 & status[i] > (goal - status[0])) {
+    					maxTransfer = 0;	
+    				}
+
+    				if (maxTransfer > 0) {
+    					int[] newStatus = Arrays.copyOf(status, status.length);
+    					newStatus[i] -= maxTransfer;
+    					newStatus[j] += maxTransfer;
+    					int newDiff = Math.abs(newStatus[j] - (goal - status[0]));
+    					if (newDiff < minDiff) {
+    						minDiff = newDiff;
+    					}
+    				}
+    			}
+    		}
+    	}
+
+    	return minDiff;
+
+
 
     }
+    
+    
+    
+    
+    
 
     private static class State implements Comparable<State> {
         private final int[] sizes; // initial sizes of all pitchers
@@ -237,90 +247,145 @@ public class Search {
         }
 
         public boolean isGoalState() {
-            return this.status[0] == this.target; // Change this to the desired goal state
+            return this.status[0] == this.target; 
         }
 
         public List<State> getNextStates() {
             List<State> nextStates = new ArrayList<>();
+            
 
             // Iterate through all pairs of pitchers
-            for (int i = 0; i < sizes.length; i++) {
+            // i starts at 1 bc water cannot be poured from the goal pitcher to a finite pitcher
+            for (int i = 1; i < sizes.length; i++) {
                 for (int j = 0; j < sizes.length; j++) {
-                    if (i == j) {
-                        continue;
+                	
+                    if (i == j) 
+                    {
+                    	// a pitcher cannot be poured into itself 	
+                    	continue;
                     }
-
-                    // Create a new state by pouring water from pitcher i to pitcher j
-                    int[] newStatuses = Arrays.copyOf(sizes, sizes.length);
                     
-                    // my code 
-            		int spaceInJugI = this.sizes[i] - this.status[i]; // the remaining space in Jug i
-            		int spaceInJugJ = this.sizes[j] - this.status[j]; // the remaining space in Jug j
-            		
-            		
-            		
-            		if((spaceInJugI == 0 & spaceInJugJ == 0) || (this.status[i] == 0 & this.status[j] == 0)) // if both pitchers are both full or empty
+                    int newStatus[] = this.status.clone(); // set temp to current status array
+
+          
+            		// int spaceInJugI = this.sizes[i] - this.status[i]; // the remaining space in Jug i
+            		int spaceInJugJ = this.sizes[j] - newStatus[j]; // the remaining space in Jug j
+
+            		if((spaceInJugJ == 0) || (newStatus[i] == 0)) // if there is no room in Pitcher J or Pitcher I is empty
             			continue;
-            
-            		if(i != 0) // Goal pitcher cannot be poured out
+
+            		// Pouring I into J States
+
+            		
+
+
+            		if((spaceInJugJ == 0) || (this.status[i] == 0)) // if there is no room in Pitcher J or Pitcher I is empty
+            			continue;
+            		else if(spaceInJugJ <= newStatus[i] & j != 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
             		{
-            			// Pouring I into J States
-            			
-                    		int newStatus[] = this.status.clone(); // set temp to current status array
-                    		
-                    		
-                    		
-                    		if(spaceInJugJ < this.status[i]) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
-                    		{
-                    			newStatus[i] = this.status[i] - spaceInJugJ;
-                    			newStatus[j] = this.sizes[j];
-                    		}
-                    		else
-                    		{
-                    			newStatus[j] += newStatus[i]; // calc new status of Jug j
-                    			newStatus[i] = 0; // calc new status of Jug i
-                    		}
-                    		
-                    		
+            			newStatus[i] -= spaceInJugJ;
+            			newStatus[j] = this.sizes[j];
+            		}
+            		else if(spaceInJugJ <= newStatus[i] & j == 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
+            		{
+            			if(spaceInJugJ != newStatus[i])
+            				continue;
+            			else
+            			{
+            				newStatus[i] -= 0;
+            				newStatus[j] = this.sizes[j];
+            			}
+            		
+            		}
+            		else if(spaceInJugJ > newStatus[i]) // when all of pitcher I fits within pitcher J
+            		{
+            			newStatus[j] += newStatus[i]; // calc new status of Jug j
+            			newStatus[i] = 0; // calc new status of Jug i
+            		}
+            		else
+            			continue;
 
-                		
-                			
-                			// TEST
-                            //for(int k = 0; k< sizes.length; k++)
-                    		//	System.out.print(newStatus[k] + " ");
-                            // TEST
-                			
-                			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
-                			 newState.path.addAll(path);
-                             newState.path.add(String.format("Pour from pitcher %d to pitcher %d", i, j));
-                             nextStates.add(newState);
-            		} // if
+            		// TEST
+            		//for(int k = 0; k< sizes.length; k++)
+            		//	System.out.print(newStatus[k] + " ");
+            		// TEST
 
-            			
+            		State newState = new State(this.sizes, cost + 1, newStatus, this.target);
+            		newState.path.addAll(path);
+            		newState.path.add(String.format("Pour from pitcher %d to pitcher %d", i, j));
+            		nextStates.add(newState);
+            		
+            		
                 } // for j
-                    
-                    
-            } // for i
-            
-
-            // Iterate through all pitchers and create a new state by filling it
-            for (int i = 0; i < sizes.length; i++) {
-            	if (sizes[i] != status[i] & i != 0) {
-            		int newStatus[] = this.status.clone(); // set temp to current status array
-        			newStatus[i] = this.sizes[i];
+                
+                if (status[i]!= 0) { // emptying
+            		int newStatus2[] = this.status.clone(); // set temp to current status array
+        			newStatus2[i] = 0;
         			
         			// TEST - PASS
                     //for(int k = 0; k< sizes.length; k++)
             		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
                     // TEST - PASS
         			
-        			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
-                    newState.path.addAll(path);
-                    newState.path.add(String.format("Fill pitcher %d", i));
-                    nextStates.add(newState);
-                    newStatus = null;
+        			State newState2 = new State(this.sizes, cost + 1, newStatus2, this.target);
+                    newState2.path.addAll(path);
+                    newState2.path.add(String.format("Empty pitcher %d", i));
+                    nextStates.add(newState2);
+                    // newStatus = null;
                 }
-            }
+            	if (sizes[i] != status[i]) { // filling
+            		int newStatus2[] = this.status.clone(); // set temp to current status array
+        			newStatus2[i] = this.sizes[i];
+        			
+        			// TEST - PASS
+                    //for(int k = 0; k< sizes.length; k++)
+            		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
+                    // TEST - PASS
+        			
+        			State newState2 = new State(this.sizes, cost + 1, newStatus2, this.target);
+                    newState2.path.addAll(path);
+                    newState2.path.add(String.format("Fill pitcher %d", i));
+                    nextStates.add(newState2);
+                    // newStatus = null;
+                }
+            } // for i
+            
+
+//            // Iterate through all pitchers and create a new state by filling it or emptying it
+//            for (int i = 1; i < sizes.length; i++) {
+//            	if (status[i]!= 0) { // emptying
+//            		int newStatus[] = this.status.clone(); // set temp to current status array
+//        			newStatus[i] = 0;
+//        			
+//        			// TEST - PASS
+//                    //for(int k = 0; k< sizes.length; k++)
+//            		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
+//                    // TEST - PASS
+//        			
+//        			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
+//                    newState.path.addAll(path);
+//                    newState.path.add(String.format("Empty pitcher %d", i));
+//                    nextStates.add(newState);
+//                    // newStatus = null;
+//                }
+//            	if (sizes[i] != status[i]) { // filling
+//            		int newStatus[] = this.status.clone(); // set temp to current status array
+//        			newStatus[i] = this.sizes[i];
+//        			
+//        			// TEST - PASS
+//                    //for(int k = 0; k< sizes.length; k++)
+//            		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
+//                    // TEST - PASS
+//        			
+//        			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
+//                    newState.path.addAll(path);
+//                    newState.path.add(String.format("Fill pitcher %d", i));
+//                    nextStates.add(newState);
+//                    // newStatus = null;
+//                }
+//            	
+//            	
+//            }
 
             return nextStates;
         } // getNextStates()
@@ -403,4 +468,3 @@ public class Search {
     }
     
 }
-
