@@ -118,6 +118,7 @@ public class Search {
 
     private int calculateHeuristic(int[] status) 
     {
+    	
     	int minDiff = Integer.MAX_VALUE;
 
     	// Find the jug closest to the goal volume
@@ -137,15 +138,10 @@ public class Search {
     				continue;
     			}
 
-    			int maxTransfer = 0;
     			if(j!=0)
     			{
     				// Calculate the maximum amount of water that can be transferred from jug i to jug j
-    				maxTransfer = Math.min(status[i], sizes[j] - status[j]);
-    				if(j==0 & status[i] > (goal - status[0])) {
-    					maxTransfer = 0;	
-    				}
-
+    				int maxTransfer = Math.min(status[i], sizes[j] - status[j]);
     				if (maxTransfer > 0) {
     					int[] newStatus = Arrays.copyOf(status, status.length);
     					newStatus[i] -= maxTransfer;
@@ -160,6 +156,7 @@ public class Search {
     	}
 
     	return minDiff;
+
 
 
 
