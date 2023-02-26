@@ -1,8 +1,5 @@
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 
 
@@ -138,28 +135,41 @@ public class Search {
     				continue;
     			}
 
-    			if(j!=0)
+    			if(j!=0 & status[i] > status[j])
     			{
+    				
     				// Calculate the maximum amount of water that can be transferred from jug i to jug j
     				int maxTransfer = Math.min(status[i], sizes[j] - status[j]);
     				if (maxTransfer > 0) {
     					int[] newStatus = Arrays.copyOf(status, status.length);
     					newStatus[i] -= maxTransfer;
     					newStatus[j] += maxTransfer;
-    					int newDiff = Math.abs(newStatus[j] - (goal - status[0]));
+    					int newDiff = Math.abs(newStatus[j] + status[0] - (goal));
     					if (newDiff < minDiff) {
     						minDiff = newDiff;
     					}
+    				}
+    			}
+    			else
+    			{
+    				if(status[i] >= (goal - status[j]))
+    				{
+        				int maxTransfer = status[i];
+        				if (maxTransfer > 0) {
+        					int[] newStatus = Arrays.copyOf(status, status.length);
+        					newStatus[i] -= maxTransfer;
+        					newStatus[j] += maxTransfer;
+        					int newDiff = Math.abs(newStatus[j] - (goal));
+        					if (newDiff < minDiff) {
+        						minDiff = newDiff;
+        					}
+        				}
     				}
     			}
     		}
     	}
 
     	return minDiff;
-
-
-
-
     }
     
     
@@ -283,22 +293,16 @@ public class Search {
             			newStatus[i] -= spaceInJugJ;
             			newStatus[j] = this.sizes[j];
             		}
-            		else if(spaceInJugJ <= newStatus[i] & j == 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
+            		else if(spaceInJugJ >= newStatus[i] & j == 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
             		{
-            			if(spaceInJugJ != newStatus[i])
-            				continue;
-            			else
-            			{
-            				newStatus[i] -= 0;
-            				newStatus[j] = this.sizes[j];
-            			}
-            		
+            				newStatus[j] += newStatus[i];
+            				newStatus[i] = 0;
             		}
-            		else if(spaceInJugJ > newStatus[i]) // when all of pitcher I fits within pitcher J
-            		{
-            			newStatus[j] += newStatus[i]; // calc new status of Jug j
-            			newStatus[i] = 0; // calc new status of Jug i
-            		}
+//            		else if(spaceInJugJ > newStatus[i]) // when all of pitcher I fits within pitcher J
+//            		{
+//            			newStatus[j] += newStatus[i]; // calc new status of Jug j
+//            			newStatus[i] = 0; // calc new status of Jug i
+//            		}
             		else
             			continue;
 
@@ -346,43 +350,7 @@ public class Search {
                     // newStatus = null;
                 }
             } // for i
-            
-
-//            // Iterate through all pitchers and create a new state by filling it or emptying it
-//            for (int i = 1; i < sizes.length; i++) {
-//            	if (status[i]!= 0) { // emptying
-//            		int newStatus[] = this.status.clone(); // set temp to current status array
-//        			newStatus[i] = 0;
-//        			
-//        			// TEST - PASS
-//                    //for(int k = 0; k< sizes.length; k++)
-//            		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
-//                    // TEST - PASS
-//        			
-//        			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
-//                    newState.path.addAll(path);
-//                    newState.path.add(String.format("Empty pitcher %d", i));
-//                    nextStates.add(newState);
-//                    // newStatus = null;
-//                }
-//            	if (sizes[i] != status[i]) { // filling
-//            		int newStatus[] = this.status.clone(); // set temp to current status array
-//        			newStatus[i] = this.sizes[i];
-//        			
-//        			// TEST - PASS
-//                    //for(int k = 0; k< sizes.length; k++)
-//            		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
-//                    // TEST - PASS
-//        			
-//        			State newState = new State(this.sizes, cost + 1, newStatus, this.target);
-//                    newState.path.addAll(path);
-//                    newState.path.add(String.format("Fill pitcher %d", i));
-//                    nextStates.add(newState);
-//                    // newStatus = null;
-//                }
-//            	
-//            	
-//            }
+           
 
             return nextStates;
         } // getNextStates()
