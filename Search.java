@@ -275,7 +275,6 @@ public class Search {
                     int newStatus[] = this.status.clone(); // set temp to current status array
 
           
-            		// int spaceInJugI = this.sizes[i] - this.status[i]; // the remaining space in Jug i
             		int spaceInJugJ = this.sizes[j] - newStatus[j]; // the remaining space in Jug j
 
             		if((spaceInJugJ == 0) || (newStatus[i] == 0)) // if there is no room in Pitcher J or Pitcher I is empty
@@ -286,23 +285,18 @@ public class Search {
             		
 
 
-            		if((spaceInJugJ == 0) || (this.status[i] == 0)) // if there is no room in Pitcher J or Pitcher I is empty
+            		if((spaceInJugJ == 0) || (this.status[i] == 0)) // True if there is no room in Pitcher J or Pitcher I is empty
             			continue;
-            		else if(spaceInJugJ <= newStatus[i] & j != 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
+            		else if(spaceInJugJ <= newStatus[i] & j != 0) // True if there isn't enough space in Pitcher J for all of Pitcher I to be poured into it
             		{
             			newStatus[i] -= spaceInJugJ;
             			newStatus[j] = this.sizes[j];
             		}
-            		else if(spaceInJugJ >= newStatus[i] & j == 0) // when there isn't enough space in Pitcher J for all of Pitcher I to be pouring in it
+            		else if(spaceInJugJ >= newStatus[i] & j == 0) // True if there isn't enough space in Pitcher J for all of Pitcher I to be poured into it
             		{
             				newStatus[j] += newStatus[i];
             				newStatus[i] = 0;
             		}
-//            		else if(spaceInJugJ > newStatus[i]) // when all of pitcher I fits within pitcher J
-//            		{
-//            			newStatus[j] += newStatus[i]; // calc new status of Jug j
-//            			newStatus[i] = 0; // calc new status of Jug i
-//            		}
             		else
             			continue;
 
@@ -323,31 +317,29 @@ public class Search {
             		int newStatus2[] = this.status.clone(); // set temp to current status array
         			newStatus2[i] = 0;
         			
-        			// TEST - PASS
-                    //for(int k = 0; k< sizes.length; k++)
+        		// TEST - PASS
+                    	//for(int k = 0; k< sizes.length; k++)
             		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
-                    // TEST - PASS
+                    	// TEST - PASS
         			
         			State newState2 = new State(this.sizes, cost + 1, newStatus2, this.target);
                     newState2.path.addAll(path);
                     newState2.path.add(String.format("Empty pitcher %d", i));
                     nextStates.add(newState2);
-                    // newStatus = null;
                 }
             	if (sizes[i] != status[i]) { // filling
             		int newStatus2[] = this.status.clone(); // set temp to current status array
         			newStatus2[i] = this.sizes[i];
         			
-        			// TEST - PASS
-                    //for(int k = 0; k< sizes.length; k++)
+        		// TEST - PASS
+                    	//for(int k = 0; k< sizes.length; k++)
             		//	System.out.println("Pitcher " + k + ": " + newStatus[k] + " ");
-                    // TEST - PASS
+                	// TEST - PASS
         			
         			State newState2 = new State(this.sizes, cost + 1, newStatus2, this.target);
                     newState2.path.addAll(path);
                     newState2.path.add(String.format("Fill pitcher %d", i));
                     nextStates.add(newState2);
-                    // newStatus = null;
                 }
             } // for i
            
@@ -392,36 +384,36 @@ public class Search {
 		String[] sizes = sc.nextLine().split(",");
 		int goal = Integer.parseInt(sc.nextLine());
 		
-		// Read the capacity of each pitcher
+	// Read the capacity of each pitcher
         int[] pitchers = new int[sizes.length + 1];
-		pitchers[0] = goal; // goal pitcher
+	pitchers[0] = goal; // goal pitcher
 		
-		for (int i = 0; i < sizes.length; i++)
-		{
-			pitchers[i+1] = Integer.parseInt(sizes[i]);
-			// sets the number of jugs and their sizes for the particular puzzle
-		}
+	for (int i = 0; i < sizes.length; i++)
+	{
+		pitchers[i+1] = Integer.parseInt(sizes[i]);
+		// sets the number of jugs and their sizes for the particular puzzle
+	}
 			
-		/*
-		 * Prints info about the problem to console for error checking
-		 */
-		System.out.println("Jug Problem Solver");
-		System.out.println("The goal is " + goal + " and there are " + sizes.length + " jugs");
-		System.out.println("The Pitcher sizes are as follows: "); // Does not print the goal pitcher (Index 0)
-		for(int i = 0; i< sizes.length; i++)
-			System.out.println("Pitcher " + (i+1) + ": " + sizes[i]);
-		System.out.println("Goal is " + goal);
 		
-            // Solve the problem
-            Search problem = new Search(pitchers, goal);
+	// Prints info about the problem to console for error checking
+	System.out.println("Jug Problem Solver");
+	System.out.println("The goal is " + goal + " and there are " + sizes.length + " jugs");
+	System.out.println("The Pitcher sizes are as follows: "); // Does not print the goal pitcher (Index 0)
+	for(int i = 0; i< sizes.length; i++)
+		System.out.println("Pitcher " + (i+1) + ": " + sizes[i]);
+	System.out.println("Goal is " + goal);
+		
+        // Solve the problem
+        Search problem = new Search(pitchers, goal);
             
-            List<String> path = problem.solve();
+        List<String> path = problem.solve();
 
-            // Output the solution
-            if (path == null) {
-                System.out.println("No solution found");
-            } else {
-            	int num = 0;
+        // Output the solution
+        if (path == null) {
+            System.out.println("No solution found");
+        }
+	else {
+		int num = 0;
                 System.out.println("Success!!! \nShortest path:");
                 for (String step : path) {
                     System.out.println(step);
